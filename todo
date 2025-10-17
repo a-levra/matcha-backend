@@ -1,0 +1,4 @@
+todo : 
+- 500 quand la requete json est mal formée (ex: {username: "test", password: } )
+- crash du server : /register avec une date mal formée
+- ajouter une erreur spécifique pour user déjà existant

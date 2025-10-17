@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "New user register",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

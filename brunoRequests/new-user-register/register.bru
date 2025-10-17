@@ -1,0 +1,24 @@
+meta {
+  name: register
+  type: http
+  seq: 1
+}
+
+post {
+  url: 127.0.0.1:3000/api/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "johndoe",
+    "email": "john@example.com",
+    "password": "password123",
+    "gender": "male",
+    "preference": "female",
+    "birthdate": "1990-01-15",
+    "bio": "Hello, I'm John!",
+    "city": "Paris"
+  }
+}

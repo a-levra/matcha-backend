@@ -3,19 +3,44 @@
 CREATE DATABASE IF NOT EXISTS matcha CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE matcha;
 
--- Table users
+
+-- Table des genres
+CREATE TABLE genders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    label VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Insertion des genres par défaut
+INSERT INTO genders (label) VALUES
+    ('male'),
+    ('female'),
+    ('non-binary'),
+    ('transgender'),
+    ('other'),
+    ('prefer not to say');
+
+-- Table des utilisateurs
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(30) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    gender ENUM('male', 'female', 'other') NOT NULL,
-    preference ENUM('male', 'female', 'both') NOT NULL,
+    gender_id INT NOT NULL,
     bio TEXT,
     birthdate DATE NOT NULL,
     city VARCHAR(100),
     is_confirmed BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (gender_id) REFERENCES genders(id)
+);
+
+-- Table des préférences (liaison many-to-many)
+CREATE TABLE user_preferences (
+    user_id INT NOT NULL,
+    gender_id INT NOT NULL,
+    PRIMARY KEY (user_id, gender_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (gender_id) REFERENCES genders(id) ON DELETE CASCADE
 );
 
 -- Table profile_pictures

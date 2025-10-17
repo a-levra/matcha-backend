@@ -1,0 +1,70 @@
+const Joi = require('joi');
+
+const allowedGenders = [
+    'male',
+    'female',
+    'non-binary',
+    'transgender',
+    'other',
+    'prefer not to say'
+];
+
+const userRegistrationSchema = Joi.object({
+    username: Joi.string().alphanum().min(3).max(30).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+
+    // Genre unique sélectionné
+    gender: Joi.string().valid(...allowedGenders).required(),
+
+    // Préférences multiples autorisées (array non vide de labels valides)
+    preferences: Joi.array()
+        .items(Joi.string().valid(...allowedGenders))
+        .min(1)
+        .required(),
+
+    birthdate: Joi.date().max('now').required(),
+    bio: Joi.string().max(500).optional(),
+    city: Joi.string().max(100).optional()
+});
+
+
+const userLoginSchema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required()
+});
+
+const messageSchema = Joi.object({
+    receiver_id: Joi.number().integer().positive().required(),
+    content: Joi.string().min(1).max(1000).required()
+});
+
+const validateRegistration = (req, res, next) => {
+    const { error } = userRegistrationSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+};
+
+const validateLogin = (req, res, next) => {
+    const { error } = userLoginSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+};
+
+const validateMessage = (req, res, next) => {
+    const { error } = messageSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+};
+
+module.exports = {
+    validateRegistration,
+    validateLogin,
+    validateMessage
+};
