@@ -12,7 +12,7 @@ const router = express.Router();
 router.post('/register', validateRegistration, async (req, res) => {
     const connection = await db.getConnection();
     try {
-        const { username, email, password, gender, preferences, birthdate, bio, city } = req.body;
+        const { username, firstname, lastname, email, password} = req.body;
 
         // Hasher le mot de passe
         const saltRounds = 10;
@@ -20,40 +20,13 @@ router.post('/register', validateRegistration, async (req, res) => {
 
         await connection.beginTransaction();
 
-        // Récupérer l'id du genre (si le front envoie un label)
-        const [genderRows] = await connection.execute(
-            `SELECT id FROM genders WHERE label = ?`,
-            [gender]
-        );
-        if (genderRows.length === 0) {
-            throw new Error("Genre invalide.");
-        }
-        const genderId = genderRows[0].id;
-
         // Insérer l'utilisateur
         const [result] = await connection.execute(
-            `INSERT INTO users (username, email, password_hash, gender_id, birthdate, bio, city)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [username, email, passwordHash, genderId, birthdate, bio, city]
+            `INSERT INTO users (username, firstname, lastname, email, password_hash)
+             VALUES (?, ?, ?, ?, ?)`,
+            [username, firstname, lastname, email, passwordHash]
         );
         const userId = result.insertId;
-
-        // Insérer les préférences (plusieurs possibles)
-        for (const prefLabel of preferences) {
-            const [prefRows] = await connection.execute(
-                `SELECT id FROM genders WHERE label = ?`,
-                [prefLabel]
-            );
-            if (prefRows.length === 0) {
-                throw new Error(`Préférence invalide: ${prefLabel}`);
-            }
-            const prefId = prefRows[0].id;
-
-            await connection.execute(
-                `INSERT INTO user_preferences (user_id, gender_id) VALUES (?, ?)`,
-                [userId, prefId]
-            );
-        }
 
         await connection.commit();
 

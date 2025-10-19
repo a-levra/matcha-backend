@@ -37,6 +37,14 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Middleware pour intercepter les JSON mal formés
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({ error: 'Invalid JSON format' });
+    }
+    next(err);
+});
+
 // Servir les fichiers statiques (images de profil)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

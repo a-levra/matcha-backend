@@ -1,4 +1,4 @@
 todo : 
-- 500 quand la requete json est mal formée (ex: {username: "test", password: } )
+- 500 quand la requete json est mal formée (ex: {username: "test", password: } ) ou quand il y a une virgule en trop dans le json
 - crash du server : /register avec une date mal formée
 - ajouter une erreur spécifique pour user déjà existant

@@ -1,4 +1,7 @@
 
+
+-- Drop l'ancinenne base de données si elle existe
+DROP DATABASE IF EXISTS matcha;
 -- Création de la base de données
 CREATE DATABASE IF NOT EXISTS matcha CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE matcha;
@@ -22,12 +25,14 @@ INSERT INTO genders (label) VALUES
 -- Table des utilisateurs
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(30) NOT NULL UNIQUE,
+    username VARCHAR(30) NOT NULL,
+    firstname VARCHAR(30) NOT NULL,
+    lastname VARCHAR(30) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    gender_id INT NOT NULL,
+    gender_id INT,
     bio TEXT,
-    birthdate DATE NOT NULL,
+    birthdate DATE,
     city VARCHAR(100),
     is_confirmed BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

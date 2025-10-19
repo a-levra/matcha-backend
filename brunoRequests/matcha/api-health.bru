@@ -1,11 +1,11 @@
 meta {
-  name: New HTTP Request
+  name: API Health
   type: http
   seq: 1
 }
 
 get {
-  url: 127.0.0.1:3000/api/health
+  url: {{host}}:3000/api/health
   body: none
   auth: none
 }

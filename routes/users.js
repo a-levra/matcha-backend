@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../config/database');
+const { validateProfileUpdate } = require('../middleware/validation');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -9,7 +10,7 @@ const router = express.Router();
 router.get('/profile', authenticateToken, async (req, res) => {
     try {
         const [users] = await db.execute(
-            `SELECT id, username, email, gender, preference, bio, birthdate, city, 
+            `SELECT id, username, email, gender_id, preferences, bio, birthdate, city, 
                     is_confirmed, created_at 
              FROM users WHERE id = ?`,
             [req.user.id]
@@ -26,14 +27,45 @@ router.get('/profile', authenticateToken, async (req, res) => {
 });
 
 // Mettre à jour le profil
-router.put('/profile', authenticateToken, async (req, res) => {
+//todo gerer la diff entre gender et gender_id 
+
+// router.put('/profile', authenticateToken, async (req, res) => {
+router.put('/profile', authenticateToken, validateProfileUpdate, async (req, res) => {
     try {
         const { bio, city, gender, preference } = req.body;
         
+
+        //         // Récupérer l'id du genre (si le front envoie un label)
+        // const [genderRows] = await connection.execute(
+        //     `SELECT id FROM genders WHERE label = ?`,
+        //     [gender]
+        // );
+        // if (genderRows.length === 0) {
+        //     throw new Error("Genre invalide.");
+        // }
+        // const genderId = genderRows[0].id;
+
+        //         // Insérer les préférences (plusieurs possibles)
+        // for (const prefLabel of preferences) {
+        //     const [prefRows] = await connection.execute(
+        //         `SELECT id FROM genders WHERE label = ?`,
+        //         [prefLabel]
+        //     );
+        //     if (prefRows.length === 0) {
+        //         throw new Error(`Préférence invalide: ${prefLabel}`);
+        //     }
+        //     const prefId = prefRows[0].id;
+
+        //     await connection.execute(
+        //         `INSERT INTO user_preferences (user_id, gender_id) VALUES (?, ?)`,
+        //         [userId, prefId]
+        //     );
+        // }
+        
         const [result] = await db.execute(
-            `UPDATE users SET bio = ?, city = ?, gender = ?, preference = ? 
+            `UPDATE users SET bio = ?, city = ?, gender_id = ?, preferences = ? 
              WHERE id = ?`,
-            [bio, city, gender, preference, req.user.id]
+            [bio, city, gender_id, preferences, req.user.id]
         );
 
         if (result.affectedRows === 0) {

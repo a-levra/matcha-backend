@@ -10,10 +10,14 @@ const allowedGenders = [
 ];
 
 const userRegistrationSchema = Joi.object({
-    username: Joi.string().alphanum().min(3).max(30).required(),
+    username: Joi.string().alphanum().min(3).max(50).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(8).required(),
+    firstname: Joi.string().max(50).required(),
+    lastname: Joi.string().max(50).required()
+});
 
+const profileUpdateSchema = Joi.object({
     // Genre unique sélectionné
     gender: Joi.string().valid(...allowedGenders).required(),
 
@@ -27,7 +31,6 @@ const userRegistrationSchema = Joi.object({
     bio: Joi.string().max(500).optional(),
     city: Joi.string().max(100).optional()
 });
-
 
 const userLoginSchema = Joi.object({
     email: Joi.string().email().required(),
@@ -63,8 +66,18 @@ const validateMessage = (req, res, next) => {
     next();
 };
 
+const validateProfileUpdate = (req, res, next) => {
+    const { error } = profileUpdateSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+};
+    
+
 module.exports = {
     validateRegistration,
     validateLogin,
-    validateMessage
+    validateMessage,
+    validateProfileUpdate
 };
