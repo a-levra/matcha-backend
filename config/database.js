@@ -7,7 +7,8 @@ const dbConfig = {
     database: process.env.DB_NAME || 'matcha',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    timezone: 'Z'
 };
 
 const pool = mysql.createPool(dbConfig);

@@ -1,10 +1,10 @@
 meta {
-  name: profile
+  name: update profile
   type: http
   seq: 1
 }
 
-get {
+post {
   url: {{host}}:3000/api/users/profile
   body: none
   auth: bearer

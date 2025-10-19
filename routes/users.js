@@ -5,12 +5,10 @@ const { validateProfileUpdate } = require('../middleware/validation');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
-// TODO modifier pour inclure les changements liés aux préférences et genres
-// Obtenir le profil de l'utilisateur connecté
 router.get('/profile', authenticateToken, async (req, res) => {
     try {
         const [users] = await db.execute(
-            `SELECT id, username, email, gender_id, preferences, bio, birthdate, city, 
+            `SELECT id, username, email, gender_id, bio, birthdate, city, 
                     is_confirmed, created_at 
              FROM users WHERE id = ?`,
             [req.user.id]
@@ -20,63 +18,79 @@ router.get('/profile', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        users[0].birthdate = users[0].birthdate ? users[0].birthdate.toISOString().split('T')[0] : null;
+
+        const [rows] = await db.execute(
+            `SELECT g.label
+            FROM user_preferences up
+            JOIN genders g ON up.gender_id = g.id
+            WHERE up.user_id = ?`,
+            [req.user.id]
+        );
+        users[0].preferences = rows.map(r => r.label);
+
         res.json(users[0]);
     } catch (error) {
         throw error;
     }
 });
 
-// Mettre à jour le profil
-//todo gerer la diff entre gender et gender_id 
-
-// router.put('/profile', authenticateToken, async (req, res) => {
-router.put('/profile', authenticateToken, validateProfileUpdate, async (req, res) => {
+router.post('/profile', authenticateToken, validateProfileUpdate, async (req, res) => {
+    const connection = await db.getConnection();
     try {
-        const { bio, city, gender, preference } = req.body;
-        
+        const { bio, city, gender, preferences, birthdate } = req.body;
+        const userId = req.user.id;
 
-        //         // Récupérer l'id du genre (si le front envoie un label)
-        // const [genderRows] = await connection.execute(
-        //     `SELECT id FROM genders WHERE label = ?`,
-        //     [gender]
-        // );
-        // if (genderRows.length === 0) {
-        //     throw new Error("Genre invalide.");
-        // }
-        // const genderId = genderRows[0].id;
+        await connection.beginTransaction();
 
-        //         // Insérer les préférences (plusieurs possibles)
-        // for (const prefLabel of preferences) {
-        //     const [prefRows] = await connection.execute(
-        //         `SELECT id FROM genders WHERE label = ?`,
-        //         [prefLabel]
-        //     );
-        //     if (prefRows.length === 0) {
-        //         throw new Error(`Préférence invalide: ${prefLabel}`);
-        //     }
-        //     const prefId = prefRows[0].id;
+        // Trouver l'id du genre principal
+        const [genderRows] = await connection.execute(
+            `SELECT id FROM genders WHERE label = ?`,
+            [gender]
+        );
+        if (genderRows.length === 0) {
+            throw new Error("Genre invalide.");
+        }
+        const genderId = genderRows[0].id;
 
-        //     await connection.execute(
-        //         `INSERT INTO user_preferences (user_id, gender_id) VALUES (?, ?)`,
-        //         [userId, prefId]
-        //     );
-        // }
-        
-        const [result] = await db.execute(
-            `UPDATE users SET bio = ?, city = ?, gender_id = ?, preferences = ? 
-             WHERE id = ?`,
-            [bio, city, gender_id, preferences, req.user.id]
+        await connection.execute(
+            `UPDATE users SET bio = ?, city = ?, gender_id = ?, birthdate = ? WHERE id = ?`,
+            [bio, city, genderId, birthdate, userId]
         );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'User not found' });
+        await connection.execute(
+            `DELETE FROM user_preferences WHERE user_id = ?`,
+            [userId]
+        );
+
+        for (const prefLabel of preferences) {
+            const [prefRows] = await connection.execute(
+                `SELECT id FROM genders WHERE label = ?`,
+                [prefLabel]
+            );
+            if (prefRows.length === 0) {
+                throw new Error(`Préférence invalide: ${prefLabel}`);
+            }
+            const prefId = prefRows[0].id;
+
+            await connection.execute(
+                `INSERT INTO user_preferences (user_id, gender_id) VALUES (?, ?)`,
+                [userId, prefId]
+            );
         }
 
+        await connection.commit();
         res.json({ message: 'Profile updated successfully' });
+
     } catch (error) {
-        throw error;
+        await connection.rollback();
+        console.error(error);
+        res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
+    } finally {
+        connection.release();
     }
 });
+
 
 // Changer le mot de passe
 router.put('/password', authenticateToken, async (req, res) => {
@@ -91,7 +105,7 @@ router.put('/password', authenticateToken, async (req, res) => {
 
         const user = users[0];
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
-        
+
         if (!isCurrentPasswordValid) {
             return res.status(400).json({ error: 'Current password is incorrect' });
         }
@@ -116,7 +130,7 @@ router.put('/password', authenticateToken, async (req, res) => {
 router.get('/search', authenticateToken, async (req, res) => {
     try {
         const { age_min, age_max, city, limit = 20, offset = 0 } = req.query;
-        
+
         let query = `
             SELECT u.id, u.username, u.bio, u.birthdate, u.city, u.gender,
                    pp.file_path as profile_picture
