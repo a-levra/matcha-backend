@@ -1,0 +1,15 @@
+meta {
+  name: get photos
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}:3000/api/profiles/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsInVzZXJuYW1lIjoiYXVyZWx3MSIsImlhdCI6MTc2MTA2NzI1MCwiZXhwIjoxNzYxMTUzNjUwfQ.CA2e8KM42Th4nBlXpFApVjVw9TOAG-_TeE8LW7GwUJk
+}

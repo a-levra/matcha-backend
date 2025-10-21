@@ -1,0 +1,30 @@
+meta {
+  name: upload photo
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}:3000/api/profiles/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsInVzZXJuYW1lIjoiYXVyZWx3MSIsImlhdCI6MTc2MTA2NzI1MCwiZXhwIjoxNzYxMTUzNjUwfQ.CA2e8KM42Th4nBlXpFApVjVw9TOAG-_TeE8LW7GwUJk
+}
+
+body:json {
+  {
+    "photo" : "adedae"
+  }
+}
+
+body:multipart-form {
+  photo: @file(/Users/aurelienlevra/Pictures/photo.jpg) @contentType(image/jpeg)
+}
+
+body:file {
+  file: @file()
+  ~file: @file()
+}
