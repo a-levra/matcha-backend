@@ -28,11 +28,19 @@ router.post('/register', validateRegistration, async (req, res) => {
         );
         const userId = result.insertId;
 
+        // Générer le token JWT
+        const token = jwt.sign(
+            { userId: userId, username: username },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
         await connection.commit();
 
         res.status(201).json({
             message: 'User created successfully',
-            userId: userId
+            userId: userId,
+            token
         });
 
     } catch (error) {
