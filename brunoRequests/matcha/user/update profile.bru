@@ -6,10 +6,20 @@ meta {
 
 post {
   url: {{host}}:3000/api/users/profile
-  body: none
+  body: json
   auth: bearer
 }
 
 auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYXVyZWx3IiwiaWF0IjoxNzYwODg3MTU5LCJleHAiOjE3NjA5NzM1NTl9.K0Y_OiFbcM8030m7Vp7sXRY_kINBTSTw_fN6X5CYdrE
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsInVzZXJuYW1lIjoiYXVyZWx3MSIsImlhdCI6MTc2MTA2NzI1MCwiZXhwIjoxNzYxMTUzNjUwfQ.CA2e8KM42Th4nBlXpFApVjVw9TOAG-_TeE8LW7GwUJk
+}
+
+body:json {
+  {
+    "gender": "male",
+    "bio": "coucou",
+    "birthdate": "1995-10-21",
+    "city": "Dijon",
+    "preferences": ["female", "male"]
+  }
 }
