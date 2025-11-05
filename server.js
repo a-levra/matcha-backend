@@ -29,7 +29,7 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limite chaque IP à 100 requêtes par fenêtre
+    max: 1000 // limite chaque IP à 100 requêtes par fenêtre //TODO reset to 100 after debug
 });
 app.use(limiter);
 
@@ -46,7 +46,11 @@ app.use((err, req, res, next) => {
 });
 
 // Servir les fichiers statiques (images de profil)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+	setHeaders: function(res, path){
+		res.set("Cross-Origin-Resource-Policy", "cross-origin");
+	}
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);

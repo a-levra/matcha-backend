@@ -37,12 +37,26 @@ const upload = multer({
     }
 });
 
-// Obtenir les photos de profil
+// Obtenir les photos de profil du client
 router.get('/', authenticateToken, async (req, res) => {
     try {
         const [pictures] = await db.execute(
             'SELECT id, file_path, is_main, uploaded_at FROM profile_pictures WHERE user_id = ? ORDER BY is_main DESC, uploaded_at DESC',
             [req.user.id]
+        );
+
+        res.json(pictures);
+    } catch (error) {
+        throw error;
+    }
+});
+
+// Obtenir les photos de profil d'un utilisateur
+router.get('/:user_id', authenticateToken, async (req, res) => {
+    try {
+        const [pictures] = await db.execute(
+            'SELECT id, file_path, is_main, uploaded_at FROM profile_pictures WHERE user_id = ? ORDER BY is_main DESC, uploaded_at DESC',
+            [req.params.user_id]
         );
 
         res.json(pictures);
