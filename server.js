@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const ws = require('ws')
 
 // import routes
 const authRoutes = require('./routes/auth');
@@ -18,6 +19,7 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 
 // Middleware de sécurité
 app.use(helmet());
@@ -73,6 +75,27 @@ app.use('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
+const wsServer = new ws.Server({ noServer: true })
+
+wsServer.on('connection', function connection(ws) {
+    console.log('New client connected');
+
+    ws.on('message', function message(data) {
+        const messageText = data.toString();
+        console.log('Received:', messageText);
+        ws.send(`Echo: ${messageText}`);
+    });
+
+    ws.on('close', function close() {
+        console.log('Client disconnected');
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+}).on('upgrade', (req, socket, head) => {
+  wsServer.handleUpgrade(req, socket, head, (ws) => {
+    wsServer.emit('connection', ws, req)
+    
+  })
 });
