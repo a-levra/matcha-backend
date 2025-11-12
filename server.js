@@ -20,6 +20,7 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const socketMap = new Map([]);
 
 // Middleware de sécurité
 app.use(helmet());
@@ -77,16 +78,34 @@ app.use('*', (req, res) => {
 
 const wsServer = new ws.Server({ noServer: true })
 
-wsServer.on('connection', function connection(ws) {
-    console.log('New client connected');
-
-    ws.on('message', function message(data) {
-        const messageText = data.toString();
-        console.log('Received:', messageText);
-        ws.send(`Echo: ${messageText}`);
+wsServer.on('connection', function connection(clientWs) {
+    // console.log('New client connected to global ws server');
+    
+    clientWs.on('message', function message(data) {
+      const messageText = data.toString();
+      if (messageText.startsWith('init')){
+        try{
+          socketMap.set(Number.parseInt(messageText.split(":")[1]), clientWs);
+          // wsHandler.addClient(Number.parseInt(messageText.split(":")[1]), clientWs);
+          console.log(`Clients : ${socketMap}`);
+        }
+        catch(error){
+          console.log("Error while saving ws in map, cause : ", error);
+        }
+      }else{  // chat message need be sent in this format : `{sender_id}->{receiver_id}:${message}`
+        var split = messageText.split(":");
+        var info = split[0].split("->");
+        var message = split[1];
+        
+        var userWs = socketMap.get(Number.parseInt(info[1]));
+        if (userWs != undefined){
+          userWs.send(`${info[0]}: ${message}`);
+          clientWs.send('Message send')
+        }
+      }
     });
 
-    ws.on('close', function close() {
+    clientWs.on('close', function close() {
         console.log('Client disconnected');
     });
 });
@@ -96,6 +115,5 @@ app.listen(PORT, () => {
 }).on('upgrade', (req, socket, head) => {
   wsServer.handleUpgrade(req, socket, head, (ws) => {
     wsServer.emit('connection', ws, req)
-    
   })
 });
