@@ -54,6 +54,18 @@ router.post('/like', authenticateToken, async (req, res) => {
                 [to_user_id, req.user.id]
             );
         }
+        
+        // mettre a jour la fame de l'utilisateur liké
+        await db.execute(
+            'UPDATE users SET fame = fame + 10 WHERE id = ?',
+            [to_user_id]
+        );
+
+        // mettre a jour la fame de l'utilisateur qui like
+        await db.execute(
+            'UPDATE users SET fame = fame + 3 WHERE id = ?',
+            [req.user.id]
+        );
 
         res.json({
             message: isMatch ? 'It\'s a match!' : 'Like sent successfully',
