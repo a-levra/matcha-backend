@@ -112,35 +112,35 @@ router.post('/profile', authenticateToken, validateProfileUpdate, async (req, re
 
 	// profile must have each of it's field filled, at least one interest and one image to be considered valid
 	var is_confirmed = true;	
-        const [users] = await connection.execute(
-            `SELECT id, username, firstname, lastname, email, gender_id, bio, birthdate, city
-             FROM users WHERE id = ?`,
-            [userId]
-        );
+  const [users] = await connection.execute(
+      `SELECT id, username, firstname, lastname, email, gender_id, bio, birthdate, city
+        FROM users WHERE id = ?`,
+      [userId]
+  );
 	if (users.length != 0){
-	    Object.values(users[0]).forEach((value)=>{
-		    if (value == null || value == undefined){
-			is_confirmed = false;
-		    }
-	    });
-    	}
-	
-        const [pictures] = await db.execute(
-            'SELECT id FROM profile_pictures WHERE user_id = ? LIMIT 1',
-            [userId]
-        );
+    Object.values(users[0]).forEach((value)=>{
+      if (value == null || value == undefined){
+        is_confirmed = false;
+      }
+    });
+  }
+
+  const [pictures] = await db.execute(
+      'SELECT id FROM profile_pictures WHERE user_id = ? LIMIT 1',
+      [userId]
+  );
 	if (pictures.length == 0){
 	    is_confirmed = false;
 	    console.log("Not enough pictures to be a confirmed user")
 	}
-	
-        const [userTags] = await db.execute(`
-            SELECT t.id, t.name 
-            FROM user_tags ut
-            JOIN tags t ON ut.tag_id = t.id
-            WHERE ut.user_id = ?
-            ORDER BY t.name
-        `, [userId]);
+
+  const [userTags] = await db.execute(`
+      SELECT t.id, t.name 
+      FROM user_tags ut
+      JOIN tags t ON ut.tag_id = t.id
+      WHERE ut.user_id = ?
+      ORDER BY t.name
+  `, [userId]);
 	if (userTags.length == 0){
 	    is_confirmed = false;
 	    console.log("Not enough tags to be a confirmed user")
@@ -154,16 +154,16 @@ router.post('/profile', authenticateToken, validateProfileUpdate, async (req, re
 	    console.log("User is confirmed!");
 	}
 
-        await connection.commit();
-        res.json({ message: 'Profile updated successfully' });
+    await connection.commit();
+    res.json({ message: 'Profile updated successfully' });
 
-    } catch (error) {
-        await connection.rollback();
-        console.error(error);
-        res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
-    } finally {
-        connection.release();
-    }
+  } catch (error) {
+    await connection.rollback();
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
+  } finally {
+    connection.release();
+  }
 });
 
 

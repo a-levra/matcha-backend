@@ -58,12 +58,13 @@ router.get('/conversation/:user_id', authenticateToken, async (req, res) => {
         }
 
         // Récupérer les messages
+        // Messages need to be sorted by id (and date if possible), if only by date then mixup can appear
         const [messages] = await db.execute(`
             SELECT m.*, u.username as sender_username
             FROM messages m
             JOIN users u ON m.sender_id = u.id
             WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
-            ORDER BY m.sent_at DESC
+            ORDER BY m.id DESC 
             LIMIT ? OFFSET ?
         `, [req.user.id, otherUserId, otherUserId, req.user.id, parseInt(limit), parseInt(offset)]);
 

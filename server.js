@@ -80,33 +80,52 @@ const wsServer = new ws.Server({ noServer: true })
 
 wsServer.on('connection', function connection(clientWs) {
     // console.log('New client connected to global ws server');
-    
     clientWs.on('message', function message(data) {
-      const messageText = data.toString();
-      if (messageText.startsWith('init')){
-        try{
-          socketMap.set(Number.parseInt(messageText.split(":")[1]), clientWs);
-          // wsHandler.addClient(Number.parseInt(messageText.split(":")[1]), clientWs);
-          console.log(`Clients : ${socketMap}`);
-        }
-        catch(error){
-          console.log("Error while saving ws in map, cause : ", error);
-        }
-      }else{  // chat message need be sent in this format : `{sender_id}->{receiver_id}:${message}`
-        var split = messageText.split(":");
-        var info = split[0].split("->");
-        var message = split[1];
-        
-        var userWs = socketMap.get(Number.parseInt(info[1]));
-        if (userWs != undefined){
-          userWs.send(`${info[0]}: ${message}`);
-          clientWs.send('Message send')
+      const messageJSON = JSON.parse(data.toString());
+      const messageText = messageJSON['message'];
+      // console.log('Received :', messageText);
+      if (messageText != undefined){
+        if (messageText.startsWith('init')){
+          try{
+            id = Number.parseInt(messageText.split(":")[1]);
+            if(socketMap.get(id) == undefined){
+              socketMap.set(id, [clientWs])
+            }
+            else{
+              socketMap.get(id).push(clientWs);
+            }
+            // Array.from(socketMap).forEach((value)=>{
+            //   console.log(`id : ${value[0]}, number of clients connected : ${value[1].length}`);
+            // })
+          }
+          catch(error){
+            console.log("Error while saving ws in map, cause : ", error);
+          }
+        }else{  // chat message need be sent in this format : `{sender_id}->{receiver_id}:${message}`
+          var split = messageText.split(":");
+          var info = split[0].split("->");
+          var message = split[1];
+          var id = Number.parseInt(info[1]);
+          
+          if (socketMap.get(id) != undefined){
+            socketMap.get(id).forEach((userWs)=>{
+              userWs.send(JSON.stringify({message: `${info[0]}:${message}`}));
+            })
+            socketMap.get(Number.parseInt(info[0])).forEach((userWs)=>{
+              userWs.send(JSON.stringify({message: `${info[0]}:${message}`}));
+            })
+          }
         }
       }
     });
 
     clientWs.on('close', function close() {
-        console.log('Client disconnected');
+      socketMap.forEach((value, key)=>{
+        socketMap.set(key, value.filter((socket)=>{
+          return socket.readyState != ws.CLOSED;
+        }));
+      })
+      console.log('Client disconnected');
     });
 });
 
