@@ -15,10 +15,9 @@ CREATE TABLE genders (
 
 -- Insertion des genres par défaut
 INSERT INTO genders (label) VALUES
-    ('male'),
-    ('female'),
+    ('man'),
+    ('woman'),
     ('non-binary'),
-    ('transgender'),
     ('other'),
     ('prefer not to say');
 
@@ -34,6 +33,8 @@ CREATE TABLE users (
     bio TEXT,
     birthdate DATE,
     city VARCHAR(100),
+    location_latitude DECIMAL(9,6),
+    location_longitude DECIMAL(9,6),
     is_confirmed BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (gender_id) REFERENCES genders(id)
@@ -85,6 +86,18 @@ CREATE TABLE tags (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
+
+INSERT INTO tags (name) VALUES
+    ('sports'),
+    ('music'),
+    ('travel'),
+    ('reading'),
+    ('gaming'),
+    ('cooking'),
+    ('fitness'),
+    ('art'),
+    ('technology'),
+    ('movies');
 
 -- Table user_tags (association entre utilisateurs et tags)
 CREATE TABLE user_tags (
