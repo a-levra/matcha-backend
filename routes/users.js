@@ -39,7 +39,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 router.get('/profile/:user_id', async (req, res) => {
     try {
         const [users] = await db.execute(
-            `SELECT id, username, firstname, lastname, email, gender_id, bio, birthdate, city, 
+            `SELECT id, username, firstname, lastname, gender_id, bio, birthdate, city, 
                     is_confirmed, created_at 
              FROM users WHERE id = ?`,
             [req.params.user_id]
@@ -113,7 +113,7 @@ router.post('/profile', authenticateToken, validateProfileUpdate, async (req, re
 	// profile must have each of it's field filled, at least one interest and one image to be considered valid
 	var is_confirmed = true;	
   const [users] = await connection.execute(
-      `SELECT id, username, firstname, lastname, email, gender_id, bio, birthdate, city
+      `SELECT id, username, firstname, lastname, gender_id, bio, birthdate, city
         FROM users WHERE id = ?`,
       [userId]
   );
@@ -151,7 +151,7 @@ router.post('/profile', authenticateToken, validateProfileUpdate, async (req, re
                 `UPDATE users SET is_confirmed = ? WHERE id = ?`,
 	        [is_confirmed, userId]
 	    );
-	    console.log("User is confirmed!");
+	    console.log("User confirmation is updated!");
 	}
 
     await connection.commit();
